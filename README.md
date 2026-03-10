@@ -1,31 +1,35 @@
-# 🛡️ Phishing Detection System
+# 🛡️ SecureAssist — AI-Powered Phishing & Threat Detector
 
-A hybrid phishing detection system combining **machine learning** and **rule-based analysis** to identify malicious URLs and spam messages. Built with Flask and trained on 150+ MB of real-world phishing data.
+A hybrid phishing and threat detection system combining **machine learning** and **rule-based analysis** to identify malicious URLs and suspicious messages — with a premium dark web UI.
+
+🔗 **Live Repo**: [github.com/Sreelakshmi-K-S/SecureAssist](https://github.com/Sreelakshmi-K-S/SecureAssist)
 
 ---
 
 ## 🎯 Overview
 
-This project detects phishing attempts in two categories:
-- **URLs**: Identifies malicious/phishing websites
-- **Messages**: Detects spam and phishing text messages
+SecureAssist analyzes two types of input:
+- **URLs** — Detects phishing domains, suspicious TLDs, IP-based URLs, homograph attacks
+- **Messages** — Detects scam language, urgency cues, credential requests, reward scams
 
-The system uses a **hybrid approach**:
-1. **Machine Learning Models** - Trained on large datasets (42MB URLs + 107MB messages)
-2. **Rule-Based Detection** - Pattern matching and heuristic analysis
-3. **Combined Scoring** - Weighted integration of both methods
+It uses a **hybrid approach**:
+1. **ML Models** — Random Forest classifiers (trained on 150 MB+ of real phishing data)
+2. **Rule-Based Detection** — 30+ heuristic checks
+3. **Web Scraping** — Fetches page content for brand spoofing and password field detection
+4. **Combined Risk Scoring** — All signals merged into a 0–100 risk score
 
 ---
 
 ## ✨ Features
 
-- 🎯 **Dual Detection**: URLs and text messages
-- 🤖 **ML-Powered**: Random Forest classifiers with 85-95%+ accuracy
-- 📊 **Risk Scoring**: Numerical risk assessment (0-100+)
-- 🔍 **Detailed Analysis**: Shows specific risk indicators
-- 🌐 **Web Interface**: User-friendly Flask web app
-- 📈 **Real-time Predictions**: Instant classification
-- 🔄 **Retrainable**: Easy model updates with new data
+| Feature | Details |
+|---------|---------|
+| 🤖 ML-Powered | Random Forest with 85–98% accuracy |
+| 🔍 35+ Rule Checks | URL patterns, TLDs, keywords, homographs, redirects |
+| 🌐 Web Scraper | Extracts title, forms, links, page text for content analysis |
+| 📊 Risk Dashboard | Clean dark UI with animated score bar and threat indicator list |
+| 📋 Multi-Input | Accepts both URLs and plain text messages |
+| 🐳 Docker Ready | One-command deployment |
 
 ---
 
@@ -34,68 +38,20 @@ The system uses a **hybrid approach**:
 ```mermaid
 graph TB
     A[User Input] --> B{Input Type Detection}
-    B -->|URL| C[URL Analysis Pipeline]
-    B -->|MESSAGE| D[Message Analysis Pipeline]
-    
-    C --> E[Pattern Analysis]
+    B -->|URL| C[URL Pattern Analysis]
+    B -->|MESSAGE| D[Message Pattern Analysis]
+
+    C --> E[Web Scraper]
     C --> F[ML URL Classifier]
-    
-    D --> G[Content Analysis]
+    D --> G[Keyword Analysis]
     D --> H[ML Message Classifier]
-    
-    E --> I[Rule-Based Scoring]
-    F --> I
-    G --> I
-    H --> I
-    
-    I --> J[Combined Risk Score]
-    J --> K{Risk Level}
-    
-    K -->|0-30| L[LOW RISK ✅]
-    K -->|31-70| M[MEDIUM RISK ⚠️]
-    K -->|71+| N[HIGH RISK 🚨]
-    
-    L --> O[Display Results]
-    M --> O
-    N --> O
-```
 
----
+    E & F & G & H --> I[Combined Risk Scoring]
+    I --> J{Score}
 
-## 🔄 Detection Pipeline
-
-### URL Detection Flow
-
-```mermaid
-flowchart LR
-    A[URL Input] --> B[Validate URL]
-    B --> C[Extract Features]
-    C --> D[Check Suspicious Patterns]
-    D --> E[ML Prediction]
-    E --> F[Rule-Based Analysis]
-    F --> G[Calculate Score]
-    G --> H[Final Decision]
-    
-    style A fill:#e1f5ff
-    style H fill:#fff4e1
-    style E fill:#f0e1ff
-```
-
-### Message Detection Flow
-
-```mermaid
-flowchart LR
-    A[Message Input] --> B[Text Preprocessing]
-    B --> C[Extract Features]
-    C --> D[Check Risk Patterns]
-    D --> E[ML Prediction]
-    E --> F[Keyword Analysis]
-    F --> G[Calculate Score]
-    G --> H[Final Decision]
-    
-    style A fill:#e1f5ff
-    style H fill:#fff4e1
-    style E fill:#f0e1ff
+    J -->|0–30| K[✅ SAFE]
+    J -->|31–70| L[⚠️ SUSPICIOUS]
+    J -->|71–100| M[🚨 THREAT DETECTED]
 ```
 
 ---
@@ -103,361 +59,188 @@ flowchart LR
 ## 📂 Project Structure
 
 ```
-mini-project/
-├── 📊 data/                    # Training datasets (gitignored)
-│   ├── url3.csv               # URL phishing data (42 MB)
-│   └── msg.csv                # Message spam data (107 MB)
+SecureAssist/
+├── app.py               # Flask app — routes and session handling
+├── input_detector.py    # Auto-detects URL vs Message; 12+ URL checks, 12+ message checks
+├── rules.py             # Hybrid scoring: ML + rule-based + scraped content
+├── score_engine.py      # Final decision (Safe / Suspicious / Phishing Alert)
+├── advisor.py           # Human-readable recommendation messages
+├── ml_predictor.py      # ML model loader and predictor
+├── scraper.py           # Scrapes URLs for metadata, forms, links (html2image preview)
+├── train_model.py       # Model training script
 │
-├── 🤖 models/                  # Trained ML models (gitignored)
-│   ├── url_classifier.joblib
-│   ├── url_vectorizer.joblib
-│   ├── msg_classifier.joblib
-│   └── msg_vectorizer.joblib
+├── templates/
+│   ├── index.html       # Scan input page (dark hero UI)
+│   └── result.html      # Analysis result dashboard
 │
-├── 🌐 templates/               # HTML templates
-│   └── index.html
+├── static/
+│   ├── css/style.css    # Full dark design system
+│   ├── js/              # Frontend scripts
+│   └── previews/        # Auto-generated website screenshots
 │
-├── 🎨 static/                  # CSS/JS assets
-│   ├── css/
-│   └── js/
+├── data/                # Training datasets (gitignored — add your own)
+│   ├── url3.csv         # URL phishing data (~42 MB)
+│   └── msg.csv          # Message spam data (~107 MB)
 │
-├── 🐍 Core Python Files
-│   ├── app.py                 # Flask application
-│   ├── input_detector.py      # Input type detection
-│   ├── rules.py               # Rule-based + ML scoring
-│   ├── score_engine.py        # Final decision logic
-│   ├── advisor.py             # Advisory messages
-│   ├── ml_predictor.py        # ML model loader
-│   └── train_model.py         # Training script
-│
-├── 📦 Configuration
-│   ├── requirements.txt       # Python dependencies
-│   ├── Dockerfile             # Docker configuration
-│   └── .gitignore
-│
-└── 📖 Documentation
-    ├── README.md              # This file
-    └── TRAIN_MODELS.md        # Training guide
+├── models/              # Trained ML models (gitignored — generated by train_model.py)
+├── requirements.txt
+├── Dockerfile
+└── TRAIN_MODELS.md
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 1. Clone the repo
+```bash
+git clone https://github.com/Sreelakshmi-K-S/SecureAssist.git
+cd SecureAssist
+```
 
-- Python 3.8+
-- pip (Python package manager)
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-### Installation
+### 3. (Optional) Train ML models
+> Skip this if you don't have datasets — the app runs with rule-based detection only.
+```bash
+python train_model.py
+```
+*Training takes 5–10 minutes. See `TRAIN_MODELS.md` for dataset format.*
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd mini-project
-   ```
+### 4. Run the app
+```bash
+python app.py
+```
 
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Add your datasets** (optional, for ML training)
-   - Place `url3.csv` in `data/` folder
-   - Place `msg.csv` in `data/` folder
-
-4. **Train ML models** (optional but recommended)
-   ```bash
-   python train_model.py
-   ```
-   *Training takes 5-10 minutes*
-
-5. **Run the application**
-   ```bash
-   python app.py
-   ```
-
-6. **Open in browser**
-   ```
-   http://localhost:7860
-   ```
+### 5. Open in browser
+```
+http://localhost:7860
+```
 
 ---
 
 ## 💻 Usage
 
-### Web Interface
-
-1. Navigate to `http://localhost:7860`
-2. Enter a URL or message to analyze
-3. Click "Analyze"
-4. View results:
-   - **Risk Level**: LOW / MEDIUM / HIGH
-   - **Risk Score**: Numerical assessment
-   - **Detection Reasons**: Specific indicators found
-   - **Advisory**: Recommended actions
+1. Go to `http://localhost:7860`
+2. Paste a **URL** or **suspicious message** into the scan bar
+3. Click **Analyze**
+4. View the result dashboard:
+   - 🔴 / 🟡 / 🟢 Risk badge (Threat / Suspicious / Safe)
+   - Risk score (0–100) with animated progress bar
+   - Per-indicator threat list with severity tags
+   - Website preview and metadata (for URLs)
 
 ### Example Inputs
 
-**Phishing URL:**
-```
-http://paypal-verify-account.xyz/login
-```
+| Input | Expected Result |
+|-------|----------------|
+| `https://google.com` | ✅ Safe |
+| `http://paypal-verify-account.ml/login` | 🚨 Threat Detected |
+| `http://bit.ly/free-iphone` | ⚠️ Suspicious |
+| `Congratulations! You won $1000. Click here now!` | 🚨 Threat Detected |
+| `Hey, let's meet for coffee tomorrow` | ✅ Safe |
 
-**Legitimate URL:**
-```
-https://google.com
-```
+---
 
-**Spam Message:**
-```
-Congratulations! You won $1000! Click here to claim now!
-```
+## 📊 How Detection Works
 
-**Legitimate Message:**
+### URL Checks (`input_detector.py`)
+- Insecure HTTP protocol
+- IP address as domain
+- Suspicious TLDs (`.ml`, `.tk`, `.xyz`, `.top` …)
+- URL shorteners (bit.ly, tinyurl …)
+- Excessive subdomains / hyphens
+- Suspicious keywords in domain or path (`login`, `verify`, `banking` …)
+- `@` symbol (credential phishing)
+- Long URLs, redirect parameters
+- Homograph attacks (Cyrillic lookalike characters)
+
+### Message Checks (`input_detector.py`)
+- Urgency language, threats, reward/prize claims
+- Credential and financial keyword detection
+- ALL CAPS and excessive punctuation
+- Embedded email addresses and phone numbers
+
+### Web Content Analysis (`scraper.py` + `rules.py`)
+- Password fields on HTTP pages
+- Brand spoofing (PayPal/Google/Microsoft in title of wrong domain)
+- Suspicious page keywords
+- External link ratio
+
+### Scoring
 ```
-Hey, let's meet for coffee tomorrow at 3pm
+Final Score = ML Score + Rule Score + Scraper Score   (clamped to 100)
+
+0–30   → Safe
+31–70  → Suspicious
+71–100 → Phishing Alert 🚨
 ```
 
 ---
 
-## 📊 How It Works
+## 🤖 ML Model Details
 
-### 1. Input Detection
+| Model | Algorithm | Features | Accuracy |
+|-------|-----------|----------|----------|
+| URL Classifier | Random Forest (100 trees) | Character n-grams, 5000 features | 85–95% |
+| Message Classifier | Random Forest (100 trees) | Word TF-IDF, 5000 features | 90–98% |
 
-```python
-# Automatically determines if input is URL or MESSAGE
-detection_result = detect_input_type(user_input)
-input_type = detection_result['type']  # 'URL' or 'MESSAGE'
-```
-
-### 2. Feature Extraction
-
-**URLs**: Character-level n-grams (2-4 characters)
-```
-Example: "paypal.com" → ['pa', 'ay', 'yp', 'pal', 'pay', ...]
-```
-
-**Messages**: Word-level TF-IDF (1-2 word n-grams)
-```
-Example: "Click here now" → ['click', 'here', 'now', 'click here', 'here now']
-```
-
-### 3. ML Classification
-
-- **Algorithm**: Random Forest (100 decision trees)
-- **Training Data**: 
-  - URLs: ~42 MB, thousands of samples
-  - Messages: ~107 MB, thousands of samples
-- **Output**: Prediction + confidence score (0-100)
-
-### 4. Rule-Based Analysis
-
-Checks for:
-- 🔴 Suspicious keywords (urgent, verify, winner, etc.)
-- 🔴 Credential requests (password, login, ssn)
-- 🔴 Obfuscation techniques
-- 🔴 Suspicious domains/TLDs
-- 🔴 URL shorteners
-- 🔴 Personal information requests
-
-### 5. Combined Scoring
-
-```
-Final Score = ML Score + Rule-Based Score
-
-Classification:
-- 0-30:   LOW RISK ✅
-- 31-70:  MEDIUM RISK ⚠️
-- 71+:    HIGH RISK 🚨
-```
-
----
-
-## 🎓 Machine Learning Details
-
-### Models
-
-| Component | Algorithm | Features | Accuracy |
-|-----------|-----------|----------|----------|
-| URL Classifier | Random Forest | Character n-grams (5000 features) | 85-95% |
-| Message Classifier | Random Forest | Word TF-IDF (5000 features) | 90-98% |
-
-### Training Process
-
-```mermaid
-graph LR
-    A[Load CSV Data] --> B[Clean & Preprocess]
-    B --> C[Train/Test Split 80/20]
-    C --> D[TF-IDF Vectorization]
-    D --> E[Train Random Forest]
-    E --> F[Evaluate Accuracy]
-    F --> G[Save Models]
-    
-    style A fill:#e1f5ff
-    style G fill:#e1ffe1
-```
-
-### Dataset Format
-
-**url3.csv**:
-```csv
-url,label
-http://phishing-site.com,1
-https://google.com,0
-```
-
-**msg.csv**:
-```csv
-label,text
-1,"Congratulations! You won..."
-0,"Hey, how are you?"
-```
-
-*Labels: 0 = Legitimate, 1 = Phishing/Spam*
+The app runs **without models** if they haven't been trained — rule-based detection still works.
 
 ---
 
 ## 🐳 Docker Deployment
 
 ```bash
-# Build image
-docker build -t phishing-detector .
-
-# Run container
-docker run -p 7860:7860 phishing-detector
+docker build -t secureassist .
+docker run -p 7860:7860 secureassist
 ```
-
-Access at `http://localhost:7860`
-
----
-
-## 📈 Performance
-
-### Accuracy Metrics
-
-- **URL Detection**: 85-95% accuracy
-- **Message Detection**: 90-98% accuracy
-- **Response Time**: < 100ms per prediction
-- **Model Size**: ~50 MB total
-
-### Risk Detection Examples
-
-| Input | Type | Risk Score | Classification |
-|-------|------|------------|----------------|
-| `https://google.com` | URL | 5 | LOW ✅ |
-| `http://bit.ly/abc123` | URL | 45 | MEDIUM ⚠️ |
-| `http://paypal-verify.xyz` | URL | 95 | HIGH 🚨 |
-| `"Hello friend"` | MSG | 2 | LOW ✅ |
-| `"Click here to win!"` | MSG | 88 | HIGH 🚨 |
 
 ---
 
 ## 🛠️ Configuration
 
-### Change Port
-
-Edit `app.py`:
+**Change port** — edit `app.py`:
 ```python
-port = int(os.environ.get("PORT", 7860))  # Change 7860
+port = int(os.environ.get("PORT", 7860))
 ```
 
-### Adjust Risk Thresholds
-
-Edit `score_engine.py`:
+**Adjust risk thresholds** — edit `score_engine.py`:
 ```python
-if score < 30:    # Adjust thresholds
-    return "LOW"
-elif score < 70:
-    return "MEDIUM"
-else:
-    return "HIGH"
+if score < 30:   return "Safe"
+elif score < 70: return "Suspicious"
+else:            return "Phishing Alert"
 ```
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Models Not Loading
-
-**Problem**: `⚠ Models directory not found`
-
-**Solution**:
-```bash
-python train_model.py
-```
-
-### Import Errors
-
-**Problem**: `ModuleNotFoundError: No module named 'sklearn'`
-
-**Solution**:
-```bash
-pip install -r requirements.txt
-```
-
-### Port Already in Use
-
-**Problem**: `Address already in use`
-
-**Solution**:
-- Stop other Flask apps on port 7860
-- Or change port in `app.py`
+| Problem | Solution |
+|---------|---------|
+| `⚠ ML models not available` | Run `python train_model.py` |
+| `ModuleNotFoundError` | Run `pip install -r requirements.txt` |
+| Port already in use | Change `PORT` env variable or edit `app.py` |
+| Screenshot not working | Install Chrome/Edge — required by `html2image` |
 
 ---
 
-## 📝 Contributing
+## 📚 Tech Stack
 
-To add new phishing patterns:
-
-1. Update datasets (`data/url3.csv` or `data/msg.csv`)
-2. Retrain models: `python train_model.py`
-3. Restart application: `python app.py`
+- **Backend**: Python, Flask
+- **ML**: scikit-learn (Random Forest, TF-IDF)
+- **Scraping**: requests, BeautifulSoup, html2image
+- **Frontend**: Vanilla HTML/CSS/JS — IBM Plex Mono + Syne fonts
+- **Deployment**: Docker, gunicorn
 
 ---
 
 ## 🔒 Security Note
 
-This tool is for **educational and research purposes**. While it achieves high accuracy, no detection system is perfect. Always:
-
-- ✅ Verify suspicious links manually
-- ✅ Use official contact methods for sensitive accounts
-- ✅ Never enter credentials on suspicious sites
-- ✅ Keep this tool updated with latest phishing patterns
-
----
-
-## 📚 Technology Stack
-
-- **Backend**: Flask (Python web framework)
-- **ML**: scikit-learn (Random Forest, TF-IDF)
-- **Data**: pandas, numpy
-- **Serialization**: joblib
-- **Frontend**: HTML, CSS, JavaScript
-- **Deployment**: Docker, WSGI (gunicorn)
-
----
-
-## 📄 License
-
-This project is for educational purposes.
-
----
-
-## 🙏 Acknowledgments
-
-- Phishing datasets from public sources
-- scikit-learn for ML algorithms
-- Flask framework for web interface
-
----
-
-## 📞 Support
-
-For issues or questions:
-- Create an issue in the repository
-- Review `TRAIN_MODELS.md` for training help
-- Check logs for error messages
+This tool is for **educational and research purposes**. No detection system is 100% accurate. Always verify suspicious links independently and never enter credentials on untrusted sites.
 
 ---
 
