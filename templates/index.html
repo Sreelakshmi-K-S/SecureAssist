@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureAssist — URL &amp; Message Threat Scanner</title>
+    <meta name="description" content="Real-time URL and message phishing detection powered by AI. Instantly scan any URL or suspicious message." />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+
+    <!-- ════ HEADER ════ -->
+    <header class="site-header">
+        <a href="{{ url_for('index') }}" class="logo">
+            <div class="logo-icon">🛡</div>
+            Secure<em>Assist</em>
+        </a>
+        <div class="header-badge">AI-Powered Threat Detection</div>
+    </header>
+
+
+    <!-- ════ HERO ════ -->
+    <section class="hero">
+        <div class="hero-badge">Real-Time Analysis Engine</div>
+        <h1>Detect <em>Threats</em> Before They Strike</h1>
+        <p>
+            Paste any URL or suspicious message to get an instant AI-powered security
+            analysis. Phishing, malware, spoofing — identified in seconds.
+        </p>
+    </section>
+
+
+    <!-- ════ SCAN BAR ════ -->
+    <div class="scan-wrapper">
+        <form method="post" action="{{ url_for('analyze') }}" id="analyzeForm">
+            <div class="scan-bar" id="scanBar">
+                <span class="scan-prefix">https://</span>
+                <input
+                    id="scanInput"
+                    name="input"
+                    type="text"
+                    class="scan-input"
+                    placeholder="paste a URL or suspicious message to scan…"
+                    autocomplete="off"
+                    spellcheck="false"
+                    required
+                />
+                <button type="submit" class="scan-btn" id="scanBtn">⟶ Analyze</button>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- ════ FEATURE CHIPS ════ -->
+    <div class="main-content" style="margin-top: 32px; margin-bottom: 80px;">
+        <div class="feature-list">
+            <div class="feature-item"><span class="fi-icon">✓</span> URL Phishing Detection</div>
+            <div class="feature-item"><span class="fi-icon">✓</span> Suspicious Message Analysis</div>
+            <div class="feature-item"><span class="fi-icon">✓</span> Brand Spoofing Detection</div>
+            <div class="feature-item"><span class="fi-icon">✓</span> Web Content Scraping</div>
+            <div class="feature-item"><span class="fi-icon">✓</span> AI Risk Scoring</div>
+        </div>
+    </div>
+
+
+    <!-- ════ FOOTER ════ -->
+    <footer class="site-footer">
+        <div>SecureAssist © 2026 — Threat Data Updated Every 60s</div>
+        <div>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Docs</a>
+        </div>
+    </footer>
+
+
+    <script>
+        // Show scanning state on submit
+        document.getElementById('analyzeForm').addEventListener('submit', function () {
+            const btn = document.getElementById('scanBtn');
+            btn.textContent = '⏳ Analyzing…';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+        });
+
+        // Allow Enter to submit
+        document.getElementById('scanInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('analyzeForm').requestSubmit();
+            }
+        });
+    </script>
+
+</body>
+</html>

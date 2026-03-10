@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureAssist — URL Threat Scanner</title>
+    <meta name="description"
+        content="Real-time URL phishing and threat detection powered by AI. Scan any URL instantly." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Syne:wght@400;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0c10;
+            --surface: #0f1218;
+            --surface2: #141820;
+            --surface3: #1a2030;
+            --border: rgba(255, 255, 255, 0.07);
+            --green: #00e5a0;
+            --green-dim: rgba(0, 229, 160, 0.12);
+            --green-glow: rgba(0, 229, 160, 0.25);
+            --blue: #0084ff;
+            --blue-dim: rgba(0, 132, 255, 0.14);
+            --red: #ff4b6e;
+            --red-dim: rgba(255, 75, 110, 0.12);
+            --yellow: #f5c400;
+            --yellow-dim: rgba(245, 196, 0, 0.12);
+            --text: #e0e6f0;
+            --text-muted: #5a6480;
+            --text-dim: #8898bb;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --font-head: 'Syne', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--surface3);
+            border-radius: 3px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 64px;
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: var(--font-head);
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--green), #00b37a);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .logo span {
+            color: var(--green);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        nav a {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            letter-spacing: 0.02em;
+            transition: color 0.2s, background 0.2s;
+            white-space: nowrap;
+        }
+
+        nav a:hover {
+            color: var(--text);
+            background: var(--surface2);
+        }
+
+        nav a.active {
+            color: var(--green);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-ghost {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 18px;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #000;
+            background: var(--green);
+            border: none;
+            border-radius: 8px;
+            padding: 7px 20px;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            background: #00ffb3;
+            box-shadow: 0 0 18px var(--green-glow);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 80px 40px 0;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.72rem;
+            color: var(--green);
+            border: 1px solid rgba(0, 229, 160, 0.3);
+            background: var(--green-dim);
+            border-radius: 20px;
+            padding: 5px 14px;
+            margin-bottom: 28px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 18px;
+            background: linear-gradient(160deg, #ffffff 0%, #8898bb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h1 em {
+            font-style: normal;
+            -webkit-text-fill-color: transparent;
+            background: linear-gradient(90deg, var(--green), #00b8ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            max-width: 540px;
+            margin: 0 auto 48px;
+            line-height: 1.8;
+        }
+
+        /* ── SCAN BAR ── */
+        .scan-wrapper {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .scan-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid rgba(0, 229, 160, 0.25);
+            border-radius: 14px;
+            padding: 6px 6px 6px 20px;
+            box-shadow: 0 0 40px rgba(0, 229, 160, 0.08), 0 20px 60px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .scan-bar:focus-within {
+            border-color: rgba(0, 229, 160, 0.5);
+            box-shadow: 0 0 60px rgba(0, 229, 160, 0.15), 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .scan-protocol {
+            font-size: 0.8rem;
+            color: var(--green);
+            margin-right: 8px;
+            white-space: nowrap;
+            opacity: 0.7;
+        }
+
+        .scan-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--text);
+            letter-spacing: 0.01em;
+        }
+
+        .scan-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .scan-btn {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: #000;
+            background: linear-gradient(135deg, var(--green), #00c488);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0);
+            transition: background 0.2s;
+        }
+
+        .scan-btn:hover::after {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .scan-btn:hover {
+            box-shadow: 0 0 24px var(--green-glow);
+            transform: translateY(-1px);
+        }
+
+        .scan-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ── RESULT BAR ── */
+        .result-section {
+            max-width: 820px;
+            margin: 20px auto 0;
+            padding: 0 40px;
+            animation: slideUp 0.4s ease;
+        }
+
+        .result-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 20px;
+            flex-wrap: wrap;
+        }
+
+        .result-url {
+            flex: 1;
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .result-url span {
+            color: var(--blue);
+        }
+
+        .badge-clean {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--green-dim);
+            border: 1px solid rgba(0, 229, 160, 0.3);
+            border-radius: 20px;
+            padding: 5px 14px 5px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--green);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 1.4s infinite;
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        .badge-threat {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--red-dim);
+            border: 1px solid rgba(255, 75, 110, 0.3);
+            border-radius: 20px;
+            padding: 5px 14px 5px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--red);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge-dot-red {
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+            animation: pulse-red 1.4s infinite;
+            box-shadow: 0 0 6px var(--red);
+        }
+
+        .score-chip {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 4px 12px;
+            background: var(--surface2);
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .score-chip b {
+            color: var(--green);
+        }
+
+        /* ── MAIN GRID ── */
+        .main-content {
+            max-width: 820px;
+            margin: 28px auto 80px;
+            padding: 0 40px;
+            display: grid;
+            gap: 16px;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-family: var(--font-head);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            padding: 22px;
+        }
+
+        /* ── METRICS ROW ── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .metric-cell {
+            background: var(--surface);
+            padding: 22px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .metric-cell::after {
+            content: attr(data-label);
+            display: block;
+            font-size: 0.67rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .metric-value {
+            font-family: var(--font-head);
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .metric-value.green {
+            color: var(--green);
+        }
+
+        .metric-value.blue {
+            color: var(--blue);
+        }
+
+        .metric-value.yellow {
+            color: var(--yellow);
+        }
+
+        .metric-value.red {
+            color: var(--red);
+        }
+
+        .metric-sub {
+            font-size: 0.67rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ── THREAT INDICATOR LIST ── */
+        .indicator-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .indicator-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--surface);
+            padding: 14px 22px;
+            transition: background 0.2s;
+        }
+
+        .indicator-row:hover {
+            background: var(--surface2);
+        }
+
+        .ind-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .ind-status.pass {
+            background: var(--green);
+            box-shadow: 0 0 6px rgba(0, 229, 160, 0.5);
+        }
+
+        .ind-status.warn {
+            background: var(--yellow);
+            box-shadow: 0 0 6px rgba(245, 196, 0, 0.5);
+        }
+
+        .ind-status.fail {
+            background: var(--red);
+            box-shadow: 0 0 6px rgba(255, 75, 110, 0.5);
+            animation: pulse-red 1.5s infinite;
+        }
+
+        .ind-label {
+            flex: 1;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        .ind-detail {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .ind-tag {
+            font-size: 0.68rem;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 5px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .ind-tag.pass {
+            color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .ind-tag.warn {
+            color: var(--yellow);
+            background: var(--yellow-dim);
+        }
+
+        .ind-tag.fail {
+            color: var(--red);
+            background: var(--red-dim);
+        }
+
+        .ind-tag.info {
+            color: var(--blue);
+            background: var(--blue-dim);
+        }
+
+        /* ── IP / NETWORK CHIPS ── */
+        .chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 18px 22px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: default;
+            user-select: all;
+            transition: background 0.2s;
+        }
+
+        .chip-ip {
+            color: var(--blue);
+            background: var(--blue-dim);
+            border: 1px solid rgba(0, 132, 255, 0.2);
+        }
+
+        .chip-ip:hover {
+            background: rgba(0, 132, 255, 0.22);
+        }
+
+        .chip-label {
+            color: var(--text-muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+        }
+
+        .chip-icon {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        /* ── SSL CARD ── */
+        .ssl-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .ssl-cell {
+            background: var(--surface);
+            padding: 18px 22px;
+        }
+
+        .ssl-key {
+            font-size: 0.67rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .ssl-val {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .ssl-val.green {
+            color: var(--green);
+        }
+
+        .ssl-val.blue {
+            color: var(--blue);
+        }
+
+        /* ── DONUT ── */
+        .donut-wrap {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            padding: 22px;
+        }
+
+        .donut-svg {
+            flex-shrink: 0;
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+        }
+
+        .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-label {
+            color: var(--text-dim);
+            flex: 1;
+        }
+
+        .legend-pct {
+            color: var(--text);
+            font-weight: 600;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* ── FOOTER STRIP ── */
+        .footer-strip {
+            border-top: 1px solid var(--border);
+            padding: 14px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            max-width: 100%;
+        }
+
+        .footer-strip a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .footer-strip a:hover {
+            color: var(--text-dim);
+        }
+
+        /* ── SCAN TABS ── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 40px;
+            margin: 28px auto 0;
+            max-width: 820px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            letter-spacing: 0.03em;
+        }
+
+        .tab:hover {
+            color: var(--text-dim);
+        }
+
+        .tab.active {
+            color: var(--green);
+            border-bottom-color: var(--green);
+        }
+
+        /* ── PROGRESS BAR ── */
+        .prog-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .prog-name {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            width: 130px;
+            flex-shrink: 0;
+        }
+
+        .prog-track {
+            flex: 1;
+            height: 4px;
+            background: var(--surface3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .prog-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1s ease;
+        }
+
+        .prog-fill.green {
+            background: var(--green);
+        }
+
+        .prog-fill.blue {
+            background: var(--blue);
+        }
+
+        .prog-fill.red {
+            background: var(--red);
+        }
+
+        .prog-fill.yellow {
+            background: var(--yellow);
+        }
+
+        .prog-pct {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            width: 32px;
+            text-align: right;
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 5px var(--green);
+            }
+
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 14px var(--green);
+            }
+        }
+
+        @keyframes pulse-red {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 5px var(--red);
+            }
+
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 14px var(--red);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .scan-loading {
+            background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 720px) {
+            header {
+                padding: 0 20px;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .hero,
+            .scan-wrapper,
+            .result-section,
+            .main-content,
+            .tabs {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .ssl-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .donut-wrap {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ════════════════════════════════════════
+     HEADER
+═════════════════════════════════════════ -->
+    <header>
+        <a href="#" class="logo">
+            <div class="logo-icon">🛡</div>
+            Secure<span>Assist</span>
+        </a>
+
+        <nav>
+            <a href="#" class="active">Live URL Scan</a>
+            <a href="#">Domain Monitor</a>
+            <a href="#">Email Plugin</a>
+            <a href="#">APIs</a>
+            <a href="#">Pricing</a>
+        </nav>
+
+        <div class="header-actions">
+            <button class="btn-ghost">Login</button>
+            <button class="btn-primary">Sign Up Free</button>
+        </div>
+    </header>
+
+
+    <!-- ════════════════════════════════════════
+     HERO
+═════════════════════════════════════════ -->
+    <section class="hero">
+        <div class="hero-badge">AI-Powered Real-Time Detection</div>
+        <h1>Detect <em>Threats</em> Before They Strike</h1>
+        <p>Instantly scan any URL for phishing, malware, typosquatting, and redirection attacks. Powered by 35+ live
+            threat intelligence feeds.</p>
+    </section>
+
+
+    <!-- ════════════════════════════════════════
+     SCAN BAR
+═════════════════════════════════════════ -->
+    <div class="scan-wrapper" style="margin-top: 0;">
+        <div class="scan-bar">
+            <span class="scan-protocol">https://</span>
+            <input id="scanInput" class="scan-input" type="text"
+                placeholder="paste a URL to scan — e.g. suspicious-site.net/login" autocomplete="off" spellcheck="false"
+                value="accounts-google-security.verify-login.net/confirm" />
+            <button class="scan-btn" onclick="runScan()">⟶ Scan URL</button>
+        </div>
+    </div>
+
+
+    <!-- ════════════════════════════════════════
+     RESULT BAR
+═════════════════════════════════════════ -->
+    <div class="result-section" id="resultSection">
+        <div class="result-bar">
+            <div class="result-url">
+                Scanning: <span>https://accounts-google-security.verify-login.net/confirm</span>
+            </div>
+            <div class="badge-threat">
+                <div class="badge-dot-red"></div>
+                THREAT DETECTED
+            </div>
+            <div class="score-chip">Risk Score: <b style="color:var(--red)">91 / 100</b></div>
+            <div class="score-chip">⏱ 0.8s</div>
+        </div>
+    </div>
+
+
+    <!-- ════════════════════════════════════════
+     TABS
+═════════════════════════════════════════ -->
+    <div class="tabs" id="tabs">
+        <div class="tab active" onclick="switchTab(this)">Overview</div>
+        <div class="tab" onclick="switchTab(this)">Network</div>
+        <div class="tab" onclick="switchTab(this)">SSL Certificate</div>
+        <div class="tab" onclick="switchTab(this)">Redirects</div>
+        <div class="tab" onclick="switchTab(this)">Raw Report</div>
+    </div>
+
+
+    <!-- ════════════════════════════════════════
+     MAIN CONTENT
+═════════════════════════════════════════ -->
+    <div class="main-content">
+
+        <!-- ── METRICS ── -->
+        <div class="card" style="overflow:hidden; border-radius: 14px;">
+            <div class="metrics-grid">
+                <div class="metric-cell" data-label="Threat Engines">
+                    <div class="metric-value red">34</div>
+                    <div class="metric-sub">flagged of 87</div>
+                </div>
+                <div class="metric-cell" data-label="Risk Score">
+                    <div class="metric-value red">91</div>
+                    <div class="metric-sub">Critical</div>
+                </div>
+                <div class="metric-cell" data-label="SSL Valid">
+                    <div class="metric-value yellow">⚠</div>
+                    <div class="metric-sub">Self-signed</div>
+                </div>
+                <div class="metric-cell" data-label="Domain Age">
+                    <div class="metric-value blue">3d</div>
+                    <div class="metric-sub">Newly registered</div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ── TWO-COL LAYOUT ── -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+            <!-- Threat Breakdown Donut -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Threat Breakdown</span>
+                    <span class="ind-tag fail">High Risk</span>
+                </div>
+                <div class="donut-wrap">
+                    <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+                        <circle cx="55" cy="55" r="42" fill="none" stroke="var(--surface3)" stroke-width="14" />
+                        <!-- Phishing 52% -->
+                        <circle cx="55" cy="55" r="42" fill="none" stroke="var(--red)" stroke-width="14"
+                            stroke-dasharray="136.3 263.9" stroke-dashoffset="0" stroke-linecap="round"
+                            transform="rotate(-90 55 55)" />
+                        <!-- Malware 20% -->
+                        <circle cx="55" cy="55" r="42" fill="none" stroke="var(--yellow)" stroke-width="14"
+                            stroke-dasharray="52.4 347.8" stroke-dashoffset="-136.3" stroke-linecap="round"
+                            transform="rotate(-90 55 55)" />
+                        <!-- Typosquat 18% -->
+                        <circle cx="55" cy="55" r="42" fill="none" stroke="var(--blue)" stroke-width="14"
+                            stroke-dasharray="47.1 353.1" stroke-dashoffset="-188.7" stroke-linecap="round"
+                            transform="rotate(-90 55 55)" />
+                        <!-- Redirect 10% -->
+                        <circle cx="55" cy="55" r="42" fill="none" stroke="var(--green)" stroke-width="14"
+                            stroke-dasharray="26.4 373.8" stroke-dashoffset="-235.8" stroke-linecap="round"
+                            transform="rotate(-90 55 55)" />
+                        <text x="55" y="50" text-anchor="middle" font-family="Syne,sans-serif" font-size="18"
+                            font-weight="800" fill="#ff4b6e">91</text>
+                        <text x="55" y="63" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8"
+                            fill="var(--text-muted)">/ 100</text>
+                    </svg>
+
+                    <div class="donut-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--red)"></div>
+                            <span class="legend-label">Phishing</span>
+                            <span class="legend-pct">52%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--yellow)"></div>
+                            <span class="legend-label">Malware</span>
+                            <span class="legend-pct">20%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--blue)"></div>
+                            <span class="legend-label">Typosquat</span>
+                            <span class="legend-pct">18%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--green)"></div>
+                            <span class="legend-label">Redirect</span>
+                            <span class="legend-pct">10%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engine Confidence -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Engine Confidence</span>
+                </div>
+                <div class="card-body">
+                    <div class="prog-row">
+                        <div class="prog-name">Phishing DB</div>
+                        <div class="prog-track">
+                            <div class="prog-fill red" style="width:97%"></div>
+                        </div>
+                        <div class="prog-pct">97%</div>
+                    </div>
+                    <div class="prog-row">
+                        <div class="prog-name">VirusTotal</div>
+                        <div class="prog-track">
+                            <div class="prog-fill red" style="width:91%"></div>
+                        </div>
+                        <div class="prog-pct">91%</div>
+                    </div>
+                    <div class="prog-row">
+                        <div class="prog-name">Google SB</div>
+                        <div class="prog-track">
+                            <div class="prog-fill yellow" style="width:78%"></div>
+                        </div>
+                        <div class="prog-pct">78%</div>
+                    </div>
+                    <div class="prog-row">
+                        <div class="prog-name">URLhaus</div>
+                        <div class="prog-track">
+                            <div class="prog-fill red" style="width:88%"></div>
+                        </div>
+                        <div class="prog-pct">88%</div>
+                    </div>
+                    <div class="prog-row">
+                        <div class="prog-name">SURBL</div>
+                        <div class="prog-track">
+                            <div class="prog-fill yellow" style="width:64%"></div>
+                        </div>
+                        <div class="prog-pct">64%</div>
+                    </div>
+                    <div class="prog-row">
+                        <div class="prog-name">OpenPhish</div>
+                        <div class="prog-track">
+                            <div class="prog-fill blue" style="width:42%"></div>
+                        </div>
+                        <div class="prog-pct">42%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ── THREAT INDICATORS ── -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Threat Indicators</span>
+                <span style="font-size:0.72rem;color:var(--red);">● 7 flags detected</span>
+            </div>
+            <div class="indicator-list">
+                <div class="indicator-row">
+                    <div class="ind-status fail"></div>
+                    <div class="ind-label">Subdomain mimics brandname (Google)</div>
+                    <div class="ind-detail">accounts-google-security</div>
+                    <div class="ind-tag fail">Critical</div>
+                </div>
+                <div class="indicator-row">
+                    <div class="ind-status fail"></div>
+                    <div class="ind-label">Domain registered less than 7 days ago</div>
+                    <div class="ind-detail">Created 2026-02-19</div>
+                    <div class="ind-tag fail">High</div>
+                </div>
+                <div class="indicator-row">
+                    <div class="ind-status fail"></div>
+                    <div class="ind-label">Suspicious TLD (.net credential lookalike)</div>
+                    <div class="ind-detail">verify-login.net</div>
+                    <div class="ind-tag fail">High</div>
+                </div>
+                <div class="indicator-row">
+                    <div class="ind-status warn"></div>
+                    <div class="ind-label">Self-signed SSL certificate detected</div>
+                    <div class="ind-detail">Issuer: Let's Encrypt (not Google CA)</div>
+                    <div class="ind-tag warn">Medium</div>
+                </div>
+                <div class="indicator-row">
+                    <div class="ind-status fail"></div>
+                    <div class="ind-label">URL path requests credential confirmation</div>
+                    <div class="ind-detail">/confirm endpoint</div>
+                    <div class="ind-tag fail">High</div>
+                </div>
+                <div class="indicator-row">
+                    <div class="ind-status warn"></div>
+                    <div class="ind-label">Hosted on bulletproof hosting provider</div>
+                    <div class="ind-detail">AS200019 — Alpha Strike Labs GmbH</div>
+                    <div class="ind-tag warn">Medium</div>
+                </div>
+                <div class="indicator-row">
+                    <div class="ind-status pass"></div>
+                    <div class="ind-label">No known malware payload detected (yet)</div>
+                    <div class="ind-detail">Static scan clean</div>
+                    <div class="ind-tag pass">Pass</div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ── NETWORK / IP ── -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Network &amp; IP Intelligence</span>
+                <span class="ind-tag info">Geolocation: NL → RU</span>
+            </div>
+            <div class="chips-row">
+                <div class="chip chip-ip"><span class="chip-icon">◈</span> 45.142.212.100</div>
+                <div class="chip chip-ip"><span class="chip-icon">◈</span> 45.142.212.101</div>
+                <div class="chip chip-label"><span class="chip-icon">🌍</span> Netherlands (proxy)</div>
+                <div class="chip chip-label"><span class="chip-icon">🏢</span> AS200019</div>
+                <div class="chip chip-label"><span class="chip-icon">📋</span> Nameserver: ns1.parklogic.com</div>
+                <div class="chip chip-label" style="color:var(--red);border-color:rgba(255,75,110,0.2)"><span
+                        class="chip-icon">🚩</span> Blacklisted</div>
+            </div>
+
+            <!-- SSL Summary -->
+            <div class="ssl-grid" style="border-top: 1px solid var(--border);">
+                <div class="ssl-cell">
+                    <div class="ssl-key">SSL Issuer</div>
+                    <div class="ssl-val">Let's Encrypt (R3)</div>
+                </div>
+                <div class="ssl-cell">
+                    <div class="ssl-key">Certificate Status</div>
+                    <div class="ssl-val" style="color:var(--yellow)">⚠ Self-signed mismatch</div>
+                </div>
+                <div class="ssl-cell">
+                    <div class="ssl-key">Valid From</div>
+                    <div class="ssl-val">Feb 19, 2026</div>
+                </div>
+                <div class="ssl-cell">
+                    <div class="ssl-key">Expires</div>
+                    <div class="ssl-val">May 20, 2026</div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main-content -->
+
+
+    <!-- ════════════════════════════════════════
+     FOOTER STRIP
+═════════════════════════════════════════ -->
+    <footer class="footer-strip">
+        <div>SecureAssist © 2026 — Threat Data Updated Every 60s</div>
+        <div style="display:flex;gap:20px;">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Status</a>
+            <a href="#">Docs</a>
+        </div>
+    </footer>
+
+
+    <script>
+        function switchTab(el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function runScan() {
+            const input = document.getElementById('scanInput').value.trim();
+            if (!input) return;
+
+            const btn = document.querySelector('.scan-btn');
+            btn.textContent = '⏳ Scanning…';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.textContent = '⟶ Scan URL';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+
+                const rs = document.getElementById('resultSection');
+                rs.style.display = 'block';
+                rs.querySelector('.result-url span').textContent = 'https://' + input;
+                rs.style.animation = 'none';
+                void rs.offsetWidth;
+                rs.style.animation = 'slideUp 0.4s ease';
+            }, 900);
+        }
+
+        // Allow Enter key to trigger scan
+        document.getElementById('scanInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') runScan();
+        });
+    </script>
+</body>
+
+</html>
