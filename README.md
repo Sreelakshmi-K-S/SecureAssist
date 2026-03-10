@@ -37,21 +37,173 @@ It uses a **hybrid approach**:
 
 ```mermaid
 graph TB
-    A[User Input] --> B{Input Type Detection}
-    B -->|URL| C[URL Pattern Analysis]
-    B -->|MESSAGE| D[Message Pattern Analysis]
+    subgraph UI["🖥️ Flask Web Interface"]
+        INDEX["index.html — Scan Bar Input"]
+        RESULT["result.html — Result Dashboard"]
+    end
 
-    C --> E[Web Scraper]
-    C --> F[ML URL Classifier]
-    D --> G[Keyword Analysis]
-    D --> H[ML Message Classifier]
+    subgraph CORE["⚙️ Core Detection Engine"]
+        ID["input_detector.py\nURL vs MESSAGE Detection\n12+ URL checks · 12+ message checks"]
+        RB["rules.py\nML + Rule-Based + Scraper Scoring"]
+        SE["score_engine.py\nFinal Decision Label"]
+        ADV["advisor.py\nHuman Recommendation"]
+    end
 
-    E & F & G & H --> I[Combined Risk Scoring]
-    I --> J{Score}
+    subgraph ML["🤖 ML Layer (Optional)"]
+        MLP["ml_predictor.py"]
+        URLM["URL Classifier\nRandom Forest · Char n-gram TF-IDF"]
+        MSGM["Message Classifier\nRandom Forest · Word TF-IDF"]
+        MLP --> URLM & MSGM
+    end
 
-    J -->|0–30| K[✅ SAFE]
-    J -->|31–70| L[⚠️ SUSPICIOUS]
-    J -->|71–100| M[🚨 THREAT DETECTED]
+    subgraph SCRAPER["🌐 Web Scraper"]
+        SC["scraper.py\nrequests + BeautifulSoup\nTitle · Forms · Links · Text\nhtml2image Screenshot"]
+    end
+
+    INDEX -->|POST /analyze| ID
+    ID --> RB
+    RB --> MLP
+    RB --> SC
+    RB --> SE
+    SE --> ADV
+    ADV --> RESULT
+```
+
+---
+
+## 🔄 URL Analysis Pipeline
+
+```mermaid
+flowchart TD
+    A([URL Input]) --> B["input_detector.py\nvalidate_url"]
+    B -->|Invalid| ERR["score +20 — Invalid URL"]
+    B -->|Valid| C["check_suspicious_url_patterns"]
+
+    C --> P1{"HTTP not HTTPS?"}
+    C --> P2{"IP as domain?"}
+    C --> P3{"Suspicious TLD?\n.ml .tk .xyz .top"}
+    C --> P4{"URL Shortener?\nbit.ly tinyurl"}
+    C --> P5{"Subdomains > 3?"}
+    C --> P6{"Keyword in domain?\nlogin verify secure"}
+    C --> P7{"Hyphens\nin domain?"}
+    C --> P8{"@ symbol\nin URL?"}
+    C --> P9{"URL length\n> 75 chars?"}
+    C --> P10{"Keyword in path?\nlogin verify banking"}
+    C --> P11{"Redirect param?\nredirect= url= next="}
+    C --> P12{"Homograph chars?\nCyrillic lookalikes"}
+
+    P1 -->|+25| S["Σ Risk Score"]
+    P2 -->|+35| S
+    P3 -->|+30| S
+    P4 -->|+25| S
+    P5 -->|+20| S
+    P6 -->|+20| S
+    P7 -->|+10 to +15| S
+    P8 -->|+40| S
+    P9 -->|+15| S
+    P10 -->|+15| S
+    P11 -->|+20| S
+    P12 -->|+35| S
+
+    S --> EXTRA["rules.py — Extra URL Checks"]
+    EXTRA --> E1[".exe .zip .bat .scr in URL +25"]
+    EXTRA --> E2["Excessive % encoding +15"]
+    EXTRA --> E3["data: URI scheme +30"]
+    E1 & E2 & E3 --> SCRP["Web Scraper Pipeline"]
+    SCRP --> FIN["Score Engine"]
+```
+
+---
+
+## 💬 Message Analysis Pipeline
+
+```mermaid
+flowchart TD
+    A([Message Input]) --> B["input_detector.py\ncheck_message_risk_patterns"]
+
+    B --> M1{"Urgency words?\nurgent expires act now"}
+    B --> M2{"Credential request?\npassword login pin"}
+    B --> M3{"Financial keywords?\nbank ssn wire transfer"}
+    B --> M4{"Threat language?\nsuspended blocked fraud"}
+    B --> M5{"Reward or prize?\nwinner lottery free money"}
+    B --> M6{"Action request?\nclick here download install"}
+    B --> M7{"Verification?\nverify confirm validate"}
+    B --> M8{"Excessive !!! or\nALL CAPS > 30%?"}
+    B --> M9{"Email address\nin message?"}
+    B --> M10{"Phone number\nin message?"}
+    B --> M11{"Short msg + link\n< 20 chars?"}
+
+    M1 -->|+20| S["Σ Risk Score"]
+    M2 -->|+25| S
+    M3 -->|+20| S
+    M4 -->|+25| S
+    M5 -->|+30| S
+    M6 -->|+15| S
+    M7 -->|+15| S
+    M8 -->|+10| S
+    M9 -->|+5| S
+    M10 -->|+5| S
+    M11 -->|+15| S
+
+    S --> EXTRA["rules.py — Extra Message Checks"]
+    EXTRA --> X1["Multiple URLs in message +20"]
+    EXTRA --> X2["Double spaces +5"]
+    EXTRA --> X3["Mixed scripts Latin+Cyrillic +25"]
+    EXTRA --> X4["PII request SSN passport DOB +25"]
+    X1 & X2 & X3 & X4 --> FIN["Score Engine"]
+```
+
+---
+
+## 🌐 Web Scraper Flow
+
+```mermaid
+flowchart LR
+    A([URL]) --> B["requests.get\ntimeout=10s\nUser-Agent: SecurityGuard"]
+    B -->|Fails| ERR["Return error dict\nJSON-safe for session"]
+    B -->|OK| C["BeautifulSoup\nHTML Parser"]
+
+    C --> D1["Page Title\nog:title or title tag"]
+    C --> D2["Meta Description"]
+    C --> D3["Visible Text\ncapped 3000 chars"]
+    C --> D4["Forms as plain dicts\naction · method · has_password"]
+    C --> D5["Link Count\ninternal vs external"]
+    C --> D6{"html2image\navailable?"}
+    D6 -->|Yes| D7["PNG Screenshot 1280x720\nmd5 filename\nstored in static/previews/"]
+    D6 -->|No| D8["Skip screenshot"]
+
+    D1 & D2 & D3 & D4 & D5 --> ANALYSIS["rules.py Content Analysis"]
+    ANALYSIS --> R1{"Brand in title/text\nbut wrong domain?\nPayPal Google Apple"}
+    ANALYSIS --> R2{"Password field\non non-HTTPS page?"}
+    ANALYSIS --> R3{"Suspicious keyword\nin page content?"}
+    ANALYSIS --> R4{"External links\n2x internal?"}
+
+    R1 -->|+45| SC["Scraper Score"]
+    R2 -->|+30 to +85| SC
+    R3 -->|+15| SC
+    R4 -->|+20| SC
+```
+
+---
+
+## 📊 Combined Scoring & Decision Engine
+
+```mermaid
+flowchart TD
+    A["input_detector.py\nURL or Message Pattern Score"] --> SUM
+    B["ml_predictor.py\n0 to 50 pts"] --> SUM
+    C["rules.py\nKeyword Weight Score"] --> SUM
+    D["scraper.py\nContent Analysis Score"] --> SUM
+
+    SUM["Σ Total Score"] --> CLAMP["Clamp: score = min score 100\napp.py"]
+    CLAMP --> SE{"score_engine.py"}
+
+    SE -->|"0 to 30"| SAFE["✅ Safe\nNo immediate threat detected.\nYou may proceed normally."]
+    SE -->|"31 to 70"| SUSP["⚠️ Suspicious\nBe cautious. Avoid clicking\nlinks or sharing data."]
+    SE -->|"71 to 100"| THREAT["🚨 Phishing Alert\nHigh risk! Do NOT interact\nwith this content."]
+
+    SAFE & SUSP & THREAT --> SESSION["Flask Session\nuser_input · score · reasons · scraped"]
+    SESSION --> DASH["result.html Dashboard\nMetrics · Animated Risk Bar\nThreat Indicator List\nWebsite Preview Panel"]
 ```
 
 ---
@@ -122,18 +274,7 @@ http://localhost:7860
 
 ---
 
-## 💻 Usage
-
-1. Go to `http://localhost:7860`
-2. Paste a **URL** or **suspicious message** into the scan bar
-3. Click **Analyze**
-4. View the result dashboard:
-   - 🔴 / 🟡 / 🟢 Risk badge (Threat / Suspicious / Safe)
-   - Risk score (0–100) with animated progress bar
-   - Per-indicator threat list with severity tags
-   - Website preview and metadata (for URLs)
-
-### Example Inputs
+## 💻 Usage Examples
 
 | Input | Expected Result |
 |-------|----------------|
@@ -145,42 +286,6 @@ http://localhost:7860
 
 ---
 
-## 📊 How Detection Works
-
-### URL Checks (`input_detector.py`)
-- Insecure HTTP protocol
-- IP address as domain
-- Suspicious TLDs (`.ml`, `.tk`, `.xyz`, `.top` …)
-- URL shorteners (bit.ly, tinyurl …)
-- Excessive subdomains / hyphens
-- Suspicious keywords in domain or path (`login`, `verify`, `banking` …)
-- `@` symbol (credential phishing)
-- Long URLs, redirect parameters
-- Homograph attacks (Cyrillic lookalike characters)
-
-### Message Checks (`input_detector.py`)
-- Urgency language, threats, reward/prize claims
-- Credential and financial keyword detection
-- ALL CAPS and excessive punctuation
-- Embedded email addresses and phone numbers
-
-### Web Content Analysis (`scraper.py` + `rules.py`)
-- Password fields on HTTP pages
-- Brand spoofing (PayPal/Google/Microsoft in title of wrong domain)
-- Suspicious page keywords
-- External link ratio
-
-### Scoring
-```
-Final Score = ML Score + Rule Score + Scraper Score   (clamped to 100)
-
-0–30   → Safe
-31–70  → Suspicious
-71–100 → Phishing Alert 🚨
-```
-
----
-
 ## 🤖 ML Model Details
 
 | Model | Algorithm | Features | Accuracy |
@@ -188,7 +293,7 @@ Final Score = ML Score + Rule Score + Scraper Score   (clamped to 100)
 | URL Classifier | Random Forest (100 trees) | Character n-grams, 5000 features | 85–95% |
 | Message Classifier | Random Forest (100 trees) | Word TF-IDF, 5000 features | 90–98% |
 
-The app runs **without models** if they haven't been trained — rule-based detection still works.
+> The app runs **without models** if they haven't been trained — rule-based detection still works.
 
 ---
 
@@ -223,7 +328,7 @@ else:            return "Phishing Alert"
 |---------|---------|
 | `⚠ ML models not available` | Run `python train_model.py` |
 | `ModuleNotFoundError` | Run `pip install -r requirements.txt` |
-| Port already in use | Change `PORT` env variable or edit `app.py` |
+| Port already in use | Change `PORT` env var or edit `app.py` |
 | Screenshot not working | Install Chrome/Edge — required by `html2image` |
 
 ---
