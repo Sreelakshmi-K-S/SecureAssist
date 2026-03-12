@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🛡 <span>Secure<em>Assist</em></span></div>
+    </div>
+
+    <div class="main-content" id="view-input">
+        <p class="subtitle">Enter a URL or message to analyze</p>
+        <div class="input-group">
+            <input type="text" id="target-input" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+            <button id="scan-btn">Scan Now</button>
+        </div>
+        <button id="scan-current-btn" class="secondary-btn">Use Current Tab URL</button>
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Analyzing threat vectors...</p>
+        </div>
+        <div id="error-msg" class="hidden error"></div>
+    </div>
+
+    <div class="main-content hidden" id="view-result">
+        <div class="result-box" id="result-box">
+            <div id="result-badge" class="badge"></div>
+            <div class="score-display">
+                <span class="score-val" id="result-score">--</span>
+                <span class="score-max">/ 100</span>
+            </div>
+            <p id="result-advice" class="advice"></p>
+        </div>
+        
+        <div class="reasons" id="result-reasons"></div>
+        
+        <button id="back-btn" class="secondary-btn" style="margin-top: 16px;">Scan Another Link</button>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
