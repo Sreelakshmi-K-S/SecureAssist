@@ -51,9 +51,19 @@ def scrape_url(url):
         "status": "success"
     }
 
+    # Attempt screenshot independently
+    if hti:
+        try:
+            url_hash = hashlib.md5(url.encode()).hexdigest()
+            img_name = f"preview_{url_hash}.png"
+            hti.screenshot(url=url, save_as=img_name, size=(1280, 720))
+            data["image_url"] = f"previews/{img_name}"
+        except Exception as e:
+            print(f"Screenshot error for {url}: {e}")
+
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SecurityGuard/1.0'}
-        response = requests.get(url, timeout=10, headers=headers)
+        response = requests.get(url, timeout=10, headers=headers, verify=False)
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Extract page title
@@ -93,17 +103,11 @@ def scrape_url(url):
             else:
                 data["links"]["external"] += 1
 
-        # Screenshot (optional)
-        if hti:
-            url_hash = hashlib.md5(url.encode()).hexdigest()
-            img_name = f"preview_{url_hash}.png"
-            hti.screenshot(url=url, save_as=img_name, size=(1280, 720))
-            data["image_url"] = f"previews/{img_name}"
-
     except Exception as e:
         print(f"Error scraping {url}: {e}")
-        data["status"] = "error"
-        data["error"] = str(e)
-        data["description"] = f"Could not analyze site: {str(e)}"
+        if data["status"] == "success": # Update status only if it hasn't failed in a way we want to report as general error
+           data["status"] = "error"
+           data["error"] = str(e)
+           data["description"] = f"Could not analyze site: {str(e)}"
 
     return data
