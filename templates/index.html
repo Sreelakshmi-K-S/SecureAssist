@@ -4,32 +4,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SecureAssist — Free Phishing Link Checker & URL Scanner</title>
-    <meta name="description" content="Protect yourself from phishing, malware, and online scams. Scan any URL or suspicious message instantly with AI-powered threat detection." />
+    <title>SecureAssist — Phishing Link Checker & URL Scanner</title>
+    <meta name="description"
+        content="Protect yourself from phishing, malware, and online scams. Scan any URL or suspicious message instantly with AI-powered threat detection." />
     <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}" />
 </head>
 
 <body>
-
-    <!-- ════ HEADER ════ -->
-    <header class="site-header">
-        <a href="{{ url_for('index') }}" class="logo">
-            <div class="logo-icon">🛡</div>
-            <span class="logo-brand">Secure<em>Assist</em></span>
-        </a>
-
-        <nav class="header-nav">
-            <a href="#">Features</a>
-            <a href="#">API</a>
-            <a href="#">Docs</a>
-            <a href="#">Pricing</a>
-        </nav>
-
-        <div class="header-actions">
-            <a href="#" class="btn-nav-outline">Sign In</a>
-            <a href="#" class="btn-nav-primary">Get Started Free</a>
-        </div>
-    </header>
 
 
     <!-- ════ HERO ════ -->
@@ -39,56 +20,26 @@
             AI-Powered Threat Detection
         </div>
 
-        <h1>Free Phishing Link Checker<br>&amp; <em>URL Threat Scanner</em></h1>
+        <h1>AI-Powered Phishing Detection for <br><em>URLs and Messages</em></h1>
 
         <p class="hero-sub">
             Protect yourself from phishing, fraud, and scams with real-time AI-powered
-            URL analysis. Paste any link or suspicious message to get an instant report.
+            URL analysis. Paste any link or suspicious message.
         </p>
 
         <!-- SCAN BAR -->
         <div class="scan-wrapper">
             <form method="post" action="{{ url_for('analyze') }}" id="analyzeForm">
                 <div class="scan-bar" id="scanBar">
-                    <span class="scan-prefix">https://</span>
-                    <input
-                        id="scanInput"
-                        name="input"
-                        type="text"
-                        class="scan-input"
-                        placeholder="Enter a URL or paste a suspicious message to scan…"
-                        autocomplete="off"
-                        spellcheck="false"
-                        required
-                    />
+
+                    <input id="scanInput" name="input" type="text" class="scan-input"
+                        placeholder="Enter a URL or paste a suspicious message to scan…" autocomplete="off"
+                        spellcheck="false" required />
                     <button type="submit" class="scan-btn" id="scanBtn">Scan Now</button>
                 </div>
             </form>
-            <p class="scan-hint">Try: <kbd>paypal-login.xyz</kbd> or <kbd>google.com</kbd> or paste a phishing SMS</p>
         </div>
     </section>
-
-
-    <!-- ════ STATS BAR ════ -->
-    <div class="stats-bar">
-        <div class="stat-item">
-            <div class="stat-value">2.4B+</div>
-            <div class="stat-label">URLs Scanned</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-value">98.7%</div>
-            <div class="stat-label">Detection Accuracy</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-value">183M+</div>
-            <div class="stat-label">Threats Detected</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-value">&lt;2s</div>
-            <div class="stat-label">Average Scan Time</div>
-        </div>
-    </div>
-
 
     <!-- ════ FEATURES ════ -->
     <section class="features-section">
@@ -116,14 +67,6 @@
                 </div>
             </div>
 
-            <div class="feature-card">
-                <div class="feature-icon red-bg">🚨</div>
-                <div class="feature-title">Brand Spoofing Alerts</div>
-                <div class="feature-desc">
-                    Detects sites impersonating PayPal, Google, Amazon, banks, and
-                    government agencies using visual & structural comparison.
-                </div>
-            </div>
 
             <div class="feature-card">
                 <div class="feature-icon yellow-bg">💬</div>
@@ -140,15 +83,6 @@
                 <div class="feature-desc">
                     Fetches and inspects live page content — forms, scripts, redirects,
                     and metadata — for deeper threat context.
-                </div>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon green-bg">⚡</div>
-                <div class="feature-title">Real-Time Analysis</div>
-                <div class="feature-desc">
-                    Results returned in under 2 seconds. Rule-based engine combined with
-                    ML model ensures comprehensive, fast detection.
                 </div>
             </div>
         </div>
@@ -173,8 +107,8 @@
             </div>
             <div class="step-item">
                 <div class="step-number">3</div>
-                <div class="step-title">Instant Report</div>
-                <div class="step-desc">Get a detailed threat report with risk score and recommendations.</div>
+                <div class="step-title">Phishing Detection</div>
+                <div class="step-desc">Detects whether the input is phishing or not.</div>
             </div>
         </div>
     </section>
@@ -187,17 +121,12 @@
                 <div class="logo-icon" style="width:28px;height:28px;font-size:14px;">🛡</div>
                 <span class="footer-brand-name">Secure<em>Assist</em></span>
             </a>
-            <p class="footer-tagline">Protecting users from phishing, malware, and online fraud since 2025.</p>
+            <p class="footer-tagline">Protecting users from phishing, malware, and online fraud.</p>
         </div>
 
         <div class="footer-links">
         </div>
     </footer>
-
-    <div class="footer-bottom">
-        <span>© 2026 SecureAssist · Threat data updated every 60 seconds</span>
-        <span><a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Contact</a></span>
-    </div>
 
 
     <script>
@@ -230,4 +159,5 @@
     </script>
 
 </body>
+
 </html>
