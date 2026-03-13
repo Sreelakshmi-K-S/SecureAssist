@@ -1,6 +1,6 @@
 # 🛡️ SecureAssist — AI-Powered Phishing & Threat Detector
 
-A hybrid phishing and threat detection system combining **machine learning** and **rule-based analysis** to identify malicious URLs and suspicious messages — with a premium dark web UI.
+A hybrid phishing and threat detection system combining **machine learning** and **rule-based analysis** to identify malicious URLs and suspicious messages — with a premium dark web UI and a **Chrome browser extension**.
 
 🔗 **Live Repo**: [github.com/Sreelakshmi-K-S/SecureAssist](https://github.com/Sreelakshmi-K-S/SecureAssist)
 
@@ -27,8 +27,10 @@ It uses a **hybrid approach**:
 | 🤖 ML-Powered | Random Forest with 85–98% accuracy |
 | 🔍 35+ Rule Checks | URL patterns, TLDs, keywords, homographs, redirects |
 | 🌐 Web Scraper | Extracts title, forms, links, page text for content analysis |
-| 📊 Risk Dashboard | Clean dark UI with animated score bar and threat indicator list |
+| 📊 Risk Dashboard | Dark UI with animated score bar and threat indicator list |
 | 📋 Multi-Input | Accepts both URLs and plain text messages |
+| 🔌 Browser Extension | Chrome extension to scan any page with one click |
+| 🚀 REST API | `/api/analyze` JSON endpoint for third-party integrations |
 | 🐳 Docker Ready | One-command deployment |
 
 ---
@@ -37,9 +39,13 @@ It uses a **hybrid approach**:
 
 ```mermaid
 graph TB
-    subgraph UI["🖥️ Flask Web Interface"]
+    subgraph UI["🖥️ FastAPI Web Interface"]
         INDEX["index.html — Scan Bar Input"]
         RESULT["result.html — Result Dashboard"]
+    end
+
+    subgraph EXT["🔌 Chrome Extension"]
+        POPUP["popup.html + popup.js"]
     end
 
     subgraph CORE["⚙️ Core Detection Engine"]
@@ -61,6 +67,7 @@ graph TB
     end
 
     INDEX -->|POST /analyze| ID
+    POPUP -->|POST /api/analyze| ID
     ID --> RB
     RB --> MLP
     RB --> SC
@@ -202,7 +209,7 @@ flowchart TD
     SE -->|"31 to 70"| SUSP["⚠️ Suspicious\nBe cautious. Avoid clicking\nlinks or sharing data."]
     SE -->|"71 to 100"| THREAT["🚨 Phishing Alert\nHigh risk! Do NOT interact\nwith this content."]
 
-    SAFE & SUSP & THREAT --> SESSION["Flask Session\nuser_input · score · reasons · scraped"]
+    SAFE & SUSP & THREAT --> SESSION["Session Store\nuser_input · score · reasons · scraped"]
     SESSION --> DASH["result.html Dashboard\nMetrics · Animated Risk Bar\nThreat Indicator List\nWebsite Preview Panel"]
 ```
 
@@ -212,7 +219,7 @@ flowchart TD
 
 ```
 SecureAssist/
-├── app.py               # Flask app — routes and session handling
+├── app.py               # FastAPI app — routes, session handling, REST API
 ├── input_detector.py    # Auto-detects URL vs Message; 12+ URL checks, 12+ message checks
 ├── rules.py             # Hybrid scoring: ML + rule-based + scraped content
 ├── score_engine.py      # Final decision (Safe / Suspicious / Phishing Alert)
@@ -222,13 +229,19 @@ SecureAssist/
 ├── train_model.py       # Model training script
 │
 ├── templates/
-│   ├── index.html       # Scan input page (dark hero UI)
+│   ├── index.html       # Scan input page (dark hero UI — no header)
 │   └── result.html      # Analysis result dashboard
 │
 ├── static/
 │   ├── css/style.css    # Full dark design system
 │   ├── js/              # Frontend scripts
 │   └── previews/        # Auto-generated website screenshots
+│
+├── extension/
+│   ├── manifest.json    # Chrome Extension Manifest v3
+│   ├── popup.html       # Extension popup UI
+│   ├── popup.js         # Calls /api/analyze endpoint
+│   └── popup.css        # Extension styling
 │
 ├── data/                # Training datasets (gitignored — add your own)
 │   ├── url3.csv         # URL phishing data (~42 MB)
@@ -271,6 +284,16 @@ python app.py
 ```
 http://localhost:7860
 ```
+
+---
+
+## 🔌 Browser Extension Setup
+
+1. Open Chrome and go to `chrome://extensions/`
+2. Enable **Developer Mode** (top-right toggle)
+3. Click **Load unpacked** → select the `extension/` folder
+4. The **SecureAssist** icon appears in your toolbar
+5. Make sure `python app.py` is running — the extension calls `http://127.0.0.1:7860/api/analyze`
 
 ---
 
@@ -322,6 +345,17 @@ else:            return "Phishing Alert"
 
 ---
 
+## 👥 Team Work Division
+
+| Member | Area | Files |
+|--------|------|-------|
+| **Teammate 1** | Backend Core & API | `app.py`, `input_detector.py`, `score_engine.py`, `advisor.py`, `requirements.txt`, `Dockerfile` |
+| **Teammate 2** | Security Rules & ML | `rules.py`, `ml_predictor.py`, `train_model.py`, `data/`, `TRAIN_MODELS.md` |
+| **Teammate 3** | Web Scraping & Data | `scraper.py`, `output.json`, `cookies.txt`, `README.md` |
+| **Teammate 4** | Frontend & Extension | `templates/`, `static/css/`, `extension/` |
+
+---
+
 ## 🔧 Troubleshooting
 
 | Problem | Solution |
@@ -330,16 +364,18 @@ else:            return "Phishing Alert"
 | `ModuleNotFoundError` | Run `pip install -r requirements.txt` |
 | Port already in use | Change `PORT` env var or edit `app.py` |
 | Screenshot not working | Install Chrome/Edge — required by `html2image` |
+| Extension can't connect | Make sure `python app.py` is running on port 7860 |
 
 ---
 
 ## 📚 Tech Stack
 
-- **Backend**: Python, Flask
+- **Backend**: Python, FastAPI, Uvicorn
 - **ML**: scikit-learn (Random Forest, TF-IDF)
 - **Scraping**: requests, BeautifulSoup, html2image
-- **Frontend**: Vanilla HTML/CSS/JS — IBM Plex Mono + Syne fonts
-- **Deployment**: Docker, gunicorn
+- **Frontend**: Vanilla HTML/CSS/JS
+- **Extension**: Chrome Extension Manifest v3
+- **Deployment**: Docker
 
 ---
 
