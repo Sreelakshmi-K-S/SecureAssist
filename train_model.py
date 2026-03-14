@@ -25,7 +25,7 @@ print("\n[1/2] Training URL Phishing Classifier...")
 print("-" * 60)
 
 # Load URL dataset
-url_data = pd.read_csv('data/url3.csv')
+url_data = pd.read_csv('data/url3.csv', on_bad_lines='skip')
 print(f"✓ Loaded URL dataset: {len(url_data)} samples")
 print(f"  Columns: {list(url_data.columns)}")
 
@@ -96,7 +96,7 @@ print("\n\n[2/2] Training Message Spam/Phishing Classifier...")
 print("-" * 60)
 
 # Load message dataset
-msg_data = pd.read_csv('data/msg.csv')
+msg_data = pd.read_csv('data/msg.csv', on_bad_lines='skip')
 print(f"✓ Loaded message dataset: {len(msg_data)} samples")
 print(f"  Columns: {list(msg_data.columns)}")
 

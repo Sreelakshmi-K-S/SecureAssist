@@ -14,7 +14,7 @@ SecureAssist analyzes two types of input:
 
 It uses a **hybrid approach**:
 1. **ML Models** — Random Forest classifiers (trained on 150 MB+ of real phishing data)
-2. **Rule-Based Detection** — 30+ heuristic checks
+2. **Rule-Based Detection** — 30+ heuristic checks via `input_detector.py`
 3. **Web Scraping** — Fetches page content for brand spoofing and password field detection
 4. **Combined Risk Scoring** — All signals merged into a 0–100 risk score
 
@@ -50,7 +50,7 @@ graph TB
 
     subgraph CORE["⚙️ Core Detection Engine"]
         ID["input_detector.py\nURL vs MESSAGE Detection\n12+ URL checks · 12+ message checks"]
-        RB["rules.py\nML + Rule-Based + Scraper Scoring"]
+        RB["rules.py\nML Scoring (ml_predictor)"]
         SE["score_engine.py\nFinal Decision Label"]
         ADV["advisor.py\nHuman Recommendation"]
     end
@@ -112,11 +112,8 @@ flowchart TD
     P11 -->|+20| S
     P12 -->|+35| S
 
-    S --> EXTRA["rules.py — Extra URL Checks"]
-    EXTRA --> E1[".exe .zip .bat .scr in URL +25"]
-    EXTRA --> E2["Excessive % encoding +15"]
-    EXTRA --> E3["data: URI scheme +30"]
-    E1 & E2 & E3 --> SCRP["Web Scraper Pipeline"]
+    S --> ML["ml_predictor.py\nRandom Forest Score"]
+    ML --> SCRP["Web Scraper Pipeline"]
     SCRP --> FIN["Score Engine"]
 ```
 
@@ -152,12 +149,8 @@ flowchart TD
     M10 -->|+5| S
     M11 -->|+15| S
 
-    S --> EXTRA["rules.py — Extra Message Checks"]
-    EXTRA --> X1["Multiple URLs in message +20"]
-    EXTRA --> X2["Double spaces +5"]
-    EXTRA --> X3["Mixed scripts Latin+Cyrillic +25"]
-    EXTRA --> X4["PII request SSN passport DOB +25"]
-    X1 & X2 & X3 & X4 --> FIN["Score Engine"]
+    S --> ML["ml_predictor.py\nRandom Forest Score"]
+    ML --> FIN["Score Engine"]
 ```
 
 ---
@@ -199,10 +192,8 @@ flowchart LR
 flowchart TD
     A["input_detector.py\nURL or Message Pattern Score"] --> SUM
     B["ml_predictor.py\n0 to 50 pts"] --> SUM
-    C["rules.py\nKeyword Weight Score"] --> SUM
-    D["scraper.py\nContent Analysis Score"] --> SUM
 
-    SUM["Σ Total Score"] --> CLAMP["Clamp: score = min score 100\napp.py"]
+    SUM["Σ Total Score"] --> CLAMP["Clamp: score = min(score, 100)\napp.py"]
     CLAMP --> SE{"score_engine.py"}
 
     SE -->|"0 to 30"| SAFE["✅ Safe\nNo immediate threat detected.\nYou may proceed normally."]
@@ -221,7 +212,7 @@ flowchart TD
 SecureAssist/
 ├── app.py               # FastAPI app — routes, session handling, REST API
 ├── input_detector.py    # Auto-detects URL vs Message; 12+ URL checks, 12+ message checks
-├── rules.py             # Hybrid scoring: ML + rule-based + scraped content
+├── rules.py             # ML scoring: delegates to ml_predictor, returns score + reasons
 ├── score_engine.py      # Final decision (Safe / Suspicious / Phishing Alert)
 ├── advisor.py           # Human-readable recommendation messages
 ├── ml_predictor.py      # ML model loader and predictor
@@ -230,7 +221,7 @@ SecureAssist/
 │
 ├── templates/
 │   ├── index.html       # Scan input page (dark hero UI — no header)
-│   └── result.html      # Analysis result dashboard
+│   └── result.html      # Analysis result dashboard (centered layout)
 │
 ├── static/
 │   ├── css/style.css    # Full dark design system
@@ -316,7 +307,7 @@ http://localhost:7860
 | URL Classifier | Random Forest (100 trees) | Character n-grams, 5000 features | 85–95% |
 | Message Classifier | Random Forest (100 trees) | Word TF-IDF, 5000 features | 90–98% |
 
-> The app runs **without models** if they haven't been trained — rule-based detection still works.
+> The app runs **without models** if they haven't been trained — pattern-based detection from `input_detector.py` still works.
 
 ---
 
@@ -342,17 +333,6 @@ if score < 30:   return "Safe"
 elif score < 70: return "Suspicious"
 else:            return "Phishing Alert"
 ```
-
----
-
-## 👥 Team Work Division
-
-| Member | Area | Files |
-|--------|------|-------|
-| **Teammate 1** | Backend Core & API | `app.py`, `input_detector.py`, `score_engine.py`, `advisor.py`, `requirements.txt`, `Dockerfile` |
-| **Teammate 2** | Security Rules & ML | `rules.py`, `ml_predictor.py`, `train_model.py`, `data/`, `TRAIN_MODELS.md` |
-| **Teammate 3** | Web Scraping & Data | `scraper.py`, `output.json`, `cookies.txt`, `README.md` |
-| **Teammate 4** | Frontend & Extension | `templates/`, `static/css/`, `extension/` |
 
 ---
 

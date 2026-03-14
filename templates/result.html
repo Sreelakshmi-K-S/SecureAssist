@@ -17,249 +17,219 @@
             <div class="logo-icon">🛡</div>
             <span class="logo-brand">Secure<em>Assist</em></span>
         </a>
-
-        <nav class="header-nav">
-            <a href="#">Features</a>
-            <a href="#">API</a>
-            <a href="#">Docs</a>
-            <a href="#">Pricing</a>
-        </nav>
-
         <div class="header-actions">
             <a href="{{ url_for('index') }}" class="back-btn">← New Scan</a>
         </div>
     </header>
 
-
     <!-- ════ VARIABLES ════ -->
-    {% set status_class = 'safe' if score < 30 else ('warn' if score < 70 else 'threat') %}
-    {% set status_label = 'CLEAN' if score < 30 else ('SUSPICIOUS' if score < 70 else 'THREAT DETECTED') %}
-    {% set status_icon  = '✓' if score < 30 else ('⚠' if score < 70 else '✕') %}
-    {% set prog_class   = 'safe' if score < 30 else ('warn' if score < 70 else 'danger') %}
-    {% set risk_label   = 'safe' if score < 30 else ('warn' if score < 70 else 'danger') %}
-
-
-    <!-- ════ RESULT BANNER ════ -->
-    <div class="result-banner">
-        <div class="result-bar">
-            <div class="result-url">
-                Scanned: <span>{{ user_input }}</span>
+    {% set status_class = 'safe' if score < 30 else ('warn' if score < 70 else 'threat' ) %} {% set status_label='CLEAN'
+        if score < 30 else ('SUSPICIOUS' if score < 70 else 'THREAT DETECTED' ) %} {% set status_icon='✓' if score < 30
+        else ('⚠' if score < 70 else '✕' ) %} {% set prog_class='safe' if score < 30 else ('warn' if score < 70
+        else 'danger' ) %} {% set risk_label='safe' if score < 30 else ('warn' if score < 70 else 'danger' ) %} <!--
+        ════ RESULT BANNER ════ -->
+        <div class="result-banner">
+            <div class="result-bar">
+                <div class="result-url">
+                    Scanned: <span>{{ user_input }}</span>
+                </div>
+                <div class="badge badge-{{ status_class }}">
+                    <div class="badge-dot {{ status_class }}"></div>
+                    {{ status_label }}
+                </div>
+                <div class="score-chip">
+                    Risk Score: <b
+                        style="color: var(--{% if score < 30 %}green{% elif score < 70 %}yellow{% else %}red{% endif %})">{{
+                        score }} / 100</b>
+                </div>
+                <div class="type-chip">{{ input_type or 'Unknown' }}</div>
             </div>
-            <div class="badge badge-{{ status_class }}">
-                <div class="badge-dot {{ status_class }}"></div>
-                {{ status_label }}
-            </div>
-            <div class="score-chip">
-                Risk Score: <b style="color: var(--{% if score < 30 %}green{% elif score < 70 %}yellow{% else %}red{% endif %})">{{ score }} / 100</b>
-            </div>
-            <div class="type-chip">{{ input_type or 'Unknown' }}</div>
         </div>
-    </div>
 
+        <!-- ════ MAIN CONTENT ════ -->
+        <div class="main-content">
 
-    <!-- ════ MAIN CONTENT ════ -->
-    <div class="main-content">
-
-        <!-- ── METRICS ── -->
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">Scan Summary</span>
-                <span class="ind-tag {{ status_class if status_class != 'threat' else 'fail' }}">
-                    {{ status_icon }} {{ status_label }}
-                </span>
-            </div>
-            <div class="metrics-grid">
-                <div class="metric-cell">
-                    <div class="metric-value {% if score < 30 %}green{% elif score < 70 %}yellow{% else %}red{% endif %}">
-                        {{ score }}
-                    </div>
-                    <div class="metric-label">Risk Score</div>
-                    <div class="metric-sub">
-                        {% if score < 30 %}Safe{% elif score < 70 %}Caution{% else %}Critical{% endif %} level
+            <!-- ── SCAN SUMMARY ── -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Scan Summary</span>
+                    <span class="ind-tag {{ status_class if status_class != 'threat' else 'fail' }}">
+                        {{ status_icon }} {{ status_label }}
+                    </span>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-cell">
+                        <div
+                            class="metric-value {% if score < 30 %}green{% elif score < 70 %}yellow{% else %}red{% endif %}">
+                            {{ score }}
+                        </div>
+                        <div class="metric-label">Risk Score</div>
+                        <div class="metric-sub">
+                            {% if score < 30 %}Safe{% elif score < 70 %}Caution{% else %}Critical{% endif %} level
+                                </div>
+                        </div>
+                        <div class="metric-cell">
+                            <div class="metric-value blue">{{ reasons|length }}</div>
+                            <div class="metric-label">Internal links</div>
+                            <div class="metric-sub">detected on page</div>
+                        </div>
+                        <div class="metric-cell">
+                            {% if scraped and scraped.links %}
+                            <div class="metric-value blue">{{ scraped.links.external }}</div>
+                            <div class="metric-label">External Links</div>
+                            <div class="metric-sub">detected on page</div>
+                            {% else %}
+                            <div class="metric-value" style="color: var(--text-dim);">—</div>
+                            <div class="metric-label">External Links</div>
+                            <div class="metric-sub">not applicable</div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-                <div class="metric-cell">
-                    <div class="metric-value blue">{{ reasons|length }}</div>
-                    <div class="metric-label">Flags Found</div>
-                    <div class="metric-sub">threat indicators</div>
-                </div>
-                <div class="metric-cell">
-                    {% if scraped and scraped.links %}
-                        <div class="metric-value blue">{{ scraped.links.external }}</div>
-                        <div class="metric-label">External Links</div>
-                        <div class="metric-sub">{{ scraped.links.internal }} internal</div>
+
+                <!-- ── RISK ASSESSMENT ── -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Risk Assessment</span>
+                    </div>
+                    <div class="risk-section">
+                        <div class="risk-header">
+                            <div>
+                                <div class="risk-label">Overall Risk Score</div>
+                                <div class="risk-value {{ risk_label }}">{{ score }}<span
+                                        style="font-size:1rem;color:var(--text-muted);font-weight:400;letter-spacing:0">
+                                        /
+                                        100</span></div>
+                            </div>
+                        </div>
+                        <div class="risk-sub">{{ advice }}</div>
+                        <div class="prog-track">
+                            <div class="prog-fill {{ prog_class }}" style="width: {{ score | int }}%;"></div>
+                        </div>
+                    </div>
+                    <div class="advice-box">
+                        <div class="advice-icon">
+                            {% if score < 30 %}✅{% elif score < 70 %}⚠️{% else %}🚨{% endif %} </div>
+                                <div class="advice-text">
+                                    <strong>Recommendation:</strong> {{ advice }}
+                                </div>
+                        </div>
+                    </div>
+
+                    <!-- ── THREAT INDICATORS ── -->
+                    {% if reasons %}
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Threat Indicators</span>
+                            <span
+                                style="font-size:0.75rem; font-weight:600; color: {% if score >= 70 %}var(--red){% elif score >= 30 %}var(--yellow){% else %}var(--green){% endif %};">
+                                {{ reasons|length }} flag{{ 's' if reasons|length != 1 else '' }} detected
+                            </span>
+                        </div>
+                        <div class="indicator-list">
+                            {% for reason in reasons %}
+                            <div class="indicator-row">
+                                {% if 'ML Model:' in reason %}
+                                <div class="ind-dot info"></div>
+                                <div class="ind-label">{{ reason }}</div>
+                                <div class="ind-tag info">AI Model</div>
+                                {% elif 'CRITICAL' in reason or 'password' in reason.lower() %}
+                                <div class="ind-dot fail"></div>
+                                <div class="ind-label">{{ reason }}</div>
+                                <div class="ind-tag fail">Critical</div>
+                                {% else %}
+                                <div class="ind-dot fail"></div>
+                                <div class="ind-label">{{ reason }}</div>
+                                <div class="ind-tag fail">Flag</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% else %}
-                        <div class="metric-value" style="color: var(--text-dim);">—</div>
-                        <div class="metric-label">Link Analysis</div>
-                        <div class="metric-sub">not applicable</div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Threat Indicators</span>
+                            <span class="ind-tag pass">✓ All Clear</span>
+                        </div>
+                        <div class="empty-state">
+                            <div style="font-size: 2.2rem;">✅</div>
+                            <p>No threat indicators detected. This content appears safe.</p>
+                        </div>
+                    </div>
                     {% endif %}
-                </div>
-            </div>
-        </div>
+
+                    <!-- ── WEBSITE PREVIEW (URL only) ── -->
+                    {% if input_type and input_type.upper() == "URL" and scraped %}
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Website Preview &amp; Metadata</span>
+                            <span class="ind-tag {% if scraped.status == 'error' %}fail{% else %}pass{% endif %}">
+                                {% if scraped.status == 'error' %}Scrape Error{% else %}✓ Scraped{% endif %}
+                            </span>
+                        </div>
+
+                        {% if scraped.image_url %}
+                        <div class="screenshot-wrap">
+                            <img src="{{ url_for('static', path=scraped.image_url) }}" alt="Website screenshot" />
+                        </div>
+                        {% else %}
+                        <div class="no-preview">📷 Screenshot unavailable for this URL</div>
+                        {% endif %}
+
+                        <div class="site-meta-grid">
+                            <div class="site-meta-cell">
+                                <div class="site-meta-key">Page Title</div>
+                                <div class="site-meta-val">{{ scraped.title or '—' }}</div>
+                            </div>
+                            <div class="site-meta-cell">
+                                <div class="site-meta-key">Status</div>
+                                <div class="site-meta-val"
+                                    style="color: {% if scraped.status == 'error' %}var(--red){% else %}var(--green){% endif %}; font-weight: 600;">
+                                    {{ scraped.status | capitalize }}
+                                </div>
+                            </div>
+                            <div class="site-meta-cell" style="grid-column: span 2; border-right: none;">
+                                <div class="site-meta-key">Meta Description</div>
+                                <div class="site-meta-val">
+                                    {{ scraped.description[:280] }}{% if scraped.description | length > 280 %}…{% endif
+                                    %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div><!-- /main-content -->
 
 
-        <!-- ── RISK ASSESSMENT ── -->
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">Risk Assessment</span>
-            </div>
-            <div class="risk-section">
-                <div class="risk-header">
+                <!-- ════ FOOTER ════ -->
+                <footer class="site-footer">
                     <div>
-                        <div class="risk-label">Overall Risk Score</div>
-                        <div class="risk-value {{ risk_label }}">{{ score }}<span style="font-size:1rem;color:var(--text-muted);font-weight:400;letter-spacing:0"> / 100</span></div>
+                        <a href="{{ url_for('index') }}" class="footer-brand">
+                            <div class="logo-icon" style="width:28px;height:28px;font-size:14px;">🛡</div>
+                            <span class="footer-brand-name">Secure<em>Assist</em></span>
+                        </a>
+                        <p class="footer-tagline">Protecting users from phishing, malware, and online fraud since 2025.
+                        </p>
                     </div>
+                    <div class="footer-links"></div>
+                </footer>
+
+                <div class="footer-bottom">
+                    <span>© 2026 SecureAssist</span>
                 </div>
-                <div class="risk-sub">{{ advice }}</div>
-                <div class="prog-track">
-                    <div class="prog-fill {{ prog_class }}" style="width: {{ score | int }}%;"></div>
-                </div>
-            </div>
-            <div class="advice-box">
-                <div class="advice-icon">
-                    {% if score < 30 %}✅{% elif score < 70 %}⚠️{% else %}🚨{% endif %}
-                </div>
-                <div class="advice-text">
-                    <strong>Recommendation:</strong> {{ advice }}
-                </div>
-            </div>
-        </div>
 
-
-        <!-- ── THREAT INDICATORS ── -->
-        {% if reasons %}
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">Threat Indicators</span>
-                <span style="font-size:0.75rem; font-weight:600; color: {% if score >= 70 %}var(--red){% elif score >= 30 %}var(--yellow){% else %}var(--green){% endif %};">
-                    {{ reasons|length }} flag{{ 's' if reasons|length != 1 else '' }} detected
-                </span>
-            </div>
-            <div class="indicator-list">
-                {% for reason in reasons %}
-                <div class="indicator-row">
-                    {% if 'CRITICAL' in reason or 'password' in reason.lower() %}
-                        <div class="ind-dot fail"></div>
-                        <div class="ind-label">{{ reason }}</div>
-                        <div class="ind-tag fail">Critical</div>
-                    {% elif 'Scraper:' in reason %}
-                        <div class="ind-dot warn"></div>
-                        <div class="ind-label">{{ reason }}</div>
-                        <div class="ind-tag warn">Content</div>
-                    {% elif 'ML Model:' in reason %}
-                        <div class="ind-dot info"></div>
-                        <div class="ind-label">{{ reason }}</div>
-                        <div class="ind-tag info">AI Model</div>
-                    {% else %}
-                        <div class="ind-dot fail"></div>
-                        <div class="ind-label">{{ reason }}</div>
-                        <div class="ind-tag fail">Flag</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% else %}
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">Threat Indicators</span>
-                <span class="ind-tag pass">✓ All Clear</span>
-            </div>
-            <div class="empty-state">
-                <div style="font-size: 2.2rem;">✅</div>
-                <p>No threat indicators detected. This content appears safe.</p>
-            </div>
-        </div>
-        {% endif %}
-
-
-        <!-- ── WEBSITE PREVIEW (URL only) ── -->
-        {% if input_type and input_type.upper() == "URL" and scraped %}
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">Website Preview &amp; Metadata</span>
-                <span class="ind-tag {% if scraped.status == 'error' %}fail{% else %}pass{% endif %}">
-                    {% if scraped.status == 'error' %}Scrape Error{% else %}✓ Scraped{% endif %}
-                </span>
-            </div>
-
-            {% if scraped.image_url %}
-            <div class="screenshot-wrap">
-                <img src="{{ url_for('static', path=scraped.image_url) }}" alt="Website screenshot" />
-            </div>
-            {% else %}
-            <div class="no-preview">📷 Screenshot unavailable for this URL</div>
-            {% endif %}
-
-            <div class="site-meta-grid">
-                <div class="site-meta-cell">
-                    <div class="site-meta-key">Page Title</div>
-                    <div class="site-meta-val">{{ scraped.title or '—' }}</div>
-                </div>
-                <div class="site-meta-cell">
-                    <div class="site-meta-key">Status</div>
-                    <div class="site-meta-val" style="color: {% if scraped.status == 'error' %}var(--red){% else %}var(--green){% endif %}; font-weight: 600;">
-                        {{ scraped.status | capitalize }}
-                    </div>
-                </div>
-                <div class="site-meta-cell" style="grid-column: span 2; border-right: none;">
-                    <div class="site-meta-key">Meta Description</div>
-                    <div class="site-meta-val">
-                        {{ scraped.description[:280] }}{% if scraped.description | length > 280 %}…{% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="site-stat-row">
-                <div class="site-stat">
-                    <div class="site-stat-val">{{ scraped.forms | length }}</div>
-                    <div class="site-stat-lbl">Forms</div>
-                </div>
-                <div class="site-stat">
-                    <div class="site-stat-val">{{ scraped.links.internal }}</div>
-                    <div class="site-stat-lbl">Internal Links</div>
-                </div>
-                <div class="site-stat">
-                    <div class="site-stat-val">{{ scraped.links.external }}</div>
-                    <div class="site-stat-lbl">External Links</div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-    </div><!-- /main-content -->
-
-
-    <!-- ════ FOOTER ════ -->
-    <footer class="site-footer">
-        <div>
-            <a href="{{ url_for('index') }}" class="footer-brand">
-                <div class="logo-icon" style="width:28px;height:28px;font-size:14px;">🛡</div>
-                <span class="footer-brand-name">Secure<em>Assist</em></span>
-            </a>
-            <p class="footer-tagline">Protecting users from phishing, malware, and online fraud since 2025.</p>
-        </div>
-
-        <div class="footer-links">
-        </div>
-    </footer>
-
-    <div class="footer-bottom">
-        <span>© 2026 SecureAssist · Threat data updated every 60 seconds</span>
-        <span><a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Contact</a></span>
-    </div>
-
-
-    <script>
-        // Animate progress bar on load
-        window.addEventListener('load', function () {
-            document.querySelectorAll('.prog-fill').forEach(function (bar) {
-                const w = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(function () { bar.style.width = w; }, 150);
-            });
-        });
-    </script>
+                <script>
+                    window.addEventListener('load', function () {
+                        document.querySelectorAll('.prog-fill').forEach(function (bar) {
+                            const w = bar.style.width;
+                            bar.style.width = '0%';
+                            setTimeout(function () { bar.style.width = w; }, 150);
+                        });
+                    });
+                </script>
 
 </body>
+
 </html>
