@@ -41,6 +41,10 @@ def scrape_url(url):
     """Scrapes site metadata and safely attempts a screenshot.
     All returned data is JSON-serializable (no BS4 objects).
     """
+    # Normalize URL — add https:// if no scheme is present
+    if url and not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+
     data = {
         "title": "Unknown Title",
         "description": "No description available.",

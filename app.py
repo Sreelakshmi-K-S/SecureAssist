@@ -61,14 +61,28 @@ async def analyze(request: Request, input: str = Form(None)):
     result = final_decision(score)
     advice = advisory_message(result)
     
+    # Slim down scraped data before storing in session cookie.
+    # The full 'text' field can push the cookie over the 4096-byte limit,
+    # causing the write to fail silently and old results to persist.
+    session_scraped = None
+    if scraped:
+        session_scraped = {
+            'title':       (scraped.get('title') or '')[:120],
+            'description': (scraped.get('description') or '')[:200],
+            'image_url':   scraped.get('image_url'),
+            'links':       scraped.get('links', {'internal': 0, 'external': 0}),
+            'forms':       scraped.get('forms', [])[:5],
+            'status':      scraped.get('status', 'error'),
+        }
+
     request.session['analysis'] = {
-        'user_input': user_input,
+        'user_input': user_input[:300],
         'input_type': input_type,
-        'result': result,
-        'score': score,
-        'advice': advice,
-        'reasons': reasons,
-        'scraped': scraped
+        'result':     result,
+        'score':      score,
+        'advice':     advice,
+        'reasons':    reasons[:10],
+        'scraped':    session_scraped,
     }
     
     return RedirectResponse(url=app.url_path_for("result"), status_code=303)

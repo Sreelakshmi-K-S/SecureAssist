@@ -216,7 +216,7 @@ SecureAssist/
 ├── score_engine.py      # Final decision (Safe / Suspicious / Phishing Alert)
 ├── advisor.py           # Human-readable recommendation messages
 ├── ml_predictor.py      # ML model loader and predictor
-├── scraper.py           # Scrapes URLs for metadata, forms, links (html2image preview)
+├── scraper.py           # Scrapes URLs for metadata, forms, links; auto-adds https:// if missing
 ├── train_model.py       # Model training script
 │
 ├── templates/
@@ -345,6 +345,8 @@ else:            return "Phishing Alert"
 | Port already in use | Change `PORT` env var or edit `app.py` |
 | Screenshot not working | Install Chrome/Edge — required by `html2image` |
 | Extension can't connect | Make sure `python app.py` is running on port 7860 |
+| Old result shown after new scan | Fixed — session cookie overflow; `app.py` now trims scraped data before saving |
+| Scrape error: No scheme supplied | Fixed — `scraper.py` now auto-prepends `https://` if URL has no scheme |
 
 ---
 
