@@ -50,43 +50,31 @@
         <div class="main-content">
 
             <!-- ── SCAN SUMMARY ── -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Scan Summary</span>
-                    <span class="ind-tag {{ status_class if status_class != 'threat' else 'fail' }}">
-                        {{ status_icon }} {{ status_label }}
-                    </span>
-                </div>
-                <div class="metrics-grid">
-                    <div class="metric-cell">
-                        <div
-                            class="metric-value {% if score < 30 %}green{% elif score < 70 %}yellow{% else %}red{% endif %}">
-                            {{ score }}
-                        </div>
-                        <div class="metric-label">Risk Score</div>
-                        <div class="metric-sub">
-                            {% if score < 30 %}Safe{% elif score < 70 %}Caution{% else %}Critical{% endif %} level
-                                </div>
-                        </div>
-                        <div class="metric-cell">
-                            <div class="metric-value blue">{{ reasons|length }}</div>
-                            <div class="metric-label">Internal links</div>
-                            <div class="metric-sub">detected on page</div>
-                        </div>
-                        <div class="metric-cell">
-                            {% if scraped and scraped.links %}
-                            <div class="metric-value blue">{{ scraped.links.external }}</div>
-                            <div class="metric-label">External Links</div>
-                            <div class="metric-sub">detected on page</div>
-                            {% else %}
-                            <div class="metric-value" style="color: var(--text-dim);">—</div>
-                            <div class="metric-label">External Links</div>
-                            <div class="metric-sub">not applicable</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+            <div class="metrics-grid">
 
+                <div class="metric-cell">
+                    <div
+                        class="metric-value {% if score < 30 %}green{% elif score < 70 %}yellow{% else %}red{% endif %}">
+                        {{ score }}
+                    </div>
+                    <div class="metric-label">Risk Score</div>
+                    <div class="metric-sub">
+                        {% if score < 30 %}Safe{% elif score < 70 %}Caution{% else %}Critical{% endif %} level </div>
+                    </div>
+
+                    <div class="metric-cell">
+                        {% if scraped and scraped.links %}
+                        <div class="metric-value blue">{{ scraped.links.external }}</div>
+                        <div class="metric-label">External Links</div>
+                        <div class="metric-sub">detected on page</div>
+                        {% else %}
+                        <div class="metric-value" style="color: var(--text-dim);">—</div>
+                        <div class="metric-label">External Links</div>
+                        <div class="metric-sub">not applicable</div>
+                        {% endif %}
+                    </div>
+
+                </div>
                 <!-- ── RISK ASSESSMENT ── -->
                 <div class="card">
                     <div class="card-header">
@@ -121,10 +109,6 @@
                     <div class="card">
                         <div class="card-header">
                             <span class="card-title">Threat Indicators</span>
-                            <span
-                                style="font-size:0.75rem; font-weight:600; color: {% if score >= 70 %}var(--red){% elif score >= 30 %}var(--yellow){% else %}var(--green){% endif %};">
-                                {{ reasons|length }} flag{{ 's' if reasons|length != 1 else '' }} detected
-                            </span>
                         </div>
                         <div class="indicator-list">
                             {% for reason in reasons %}
@@ -140,7 +124,6 @@
                                 {% else %}
                                 <div class="ind-dot fail"></div>
                                 <div class="ind-label">{{ reason }}</div>
-                                <div class="ind-tag fail">Flag</div>
                                 {% endif %}
                             </div>
                             {% endfor %}
